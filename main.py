@@ -1,27 +1,28 @@
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 from selenium import webdriver
 import time
+import re
 
 def hello(update, context):
     chat_id = update.message.chat_id
     context.bot.send_message(chat_id=chat_id, text="Hello! Opening webpage...")
 
     # Create a new Selenium WebDriver instance
-    get_usage(update,context)
+    
 
-def get_usage(update,context):
+def get_usage(update,context,id):
     chat_id = update.message.chat_id
     # Create a new Firefox driver instance
     driver = webdriver.Firefox(executable_path='geckodriver.exe')
 
     # Open the desired webpage
-    driver.get("URL")
+    driver.get("http://80.240.16.219:2549")
 
     # Find and fill in the username and password fields
     username_input = driver.find_element_by_xpath("//input[@placeholder='Username']")
-    username_input.send_keys("USERNAME")
+    username_input.send_keys("karo")
     password_input = driver.find_element_by_xpath("//input[@placeholder='Password']")
-    password_input.send_keys("PASSWORD")
+    password_input.send_keys("138292Kk")
 
     time.sleep(2)
 
@@ -32,7 +33,7 @@ def get_usage(update,context):
     time.sleep(2)
 
     # Navigate to the desired page
-    driver.get("URL")
+    driver.get("http://80.240.16.219:2549/panel/inbounds")
 
     time.sleep(4)
 
@@ -57,24 +58,43 @@ def get_usage(update,context):
     return logs;
     """
 
-    uid = '9ec1f9c0-20c2-4ca8-df33-0ca1fca92892'
+    uid = id
     formatted_script = script.format(uid)
-    print(formatted_script)
 
     # Retrieve the console log output
     result = driver.execute_script(formatted_script)
-    # Close the browser
     context.bot.send_message(chat_id=chat_id, text=result)
+    # Close the browser
     driver.quit()
 
 
+def handle_message(update, context):
+    string = update.message.text
+    
+    uid_match = re.search(r'//([^@]+)@', string)
+    domain_match = re.search(r'@(.+):', string)
+
+    if uid_match and domain_match:
+        uid = uid_match.group(1)
+        domain = domain_match.group(1)
+        
+        response = f"uid: {uid}\ndomain: {domain}"
+        get_usage(update,context,uid)
+    else:
+        response = "UID or domain not found in the string."
+    
+    context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
 
 def main():
-    updater = Updater(token="YOUR BOT TOKEN", use_context=True)
+    updater = Updater(token="6639628878:AAFqR-an9Iif8iprVhGDHyLnCHUIxKbGM-s", use_context=True)
     dispatcher = updater.dispatcher
 
     # Register the hello() function as a handler for the "hello" command
     dispatcher.add_handler(CommandHandler("hello", hello))
+    handler = MessageHandler(Filters.text & ~Filters.command, handle_message)
+    dispatcher.add_handler(handler)
+
 
     updater.start_polling()
     updater.idle()
