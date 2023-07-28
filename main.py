@@ -2,6 +2,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 from selenium import webdriver
 import time
 import re
+import json
 
 def hello(update, context):
     chat_id = update.message.chat_id
@@ -10,13 +11,13 @@ def hello(update, context):
     # Create a new Selenium WebDriver instance
     
 
-def get_usage(update,context,id):
+def get_usage(update,context,id,url):
     chat_id = update.message.chat_id
     # Create a new Firefox driver instance
     driver = webdriver.Firefox(executable_path='geckodriver.exe')
 
     # Open the desired webpage
-    driver.get("http://80.240.16.219:2549")
+    driver.get(f"http://{url}:2549")
 
     # Find and fill in the username and password fields
     username_input = driver.find_element_by_xpath("//input[@placeholder='Username']")
@@ -33,7 +34,7 @@ def get_usage(update,context,id):
     time.sleep(2)
 
     # Navigate to the desired page
-    driver.get("http://80.240.16.219:2549/panel/inbounds")
+    driver.get(f"http://{url}:2549/panel/inbounds")
 
     time.sleep(4)
 
@@ -67,6 +68,29 @@ def get_usage(update,context,id):
     # Close the browser
     driver.quit()
 
+def add_panel_command(update,context):
+    args = context.args
+    if args:
+        server_ip = args[0]
+        server_domain = args[1]
+        f = open('servers.json')
+        servers = json.load(f)
+        domains_list = []
+        for i in range(len(servers)):
+            domains_list.append(servers[i]['domain'])
+
+        if server_domain not in domains_list:
+            server = {
+                'ip' : server_ip,
+                'domain' : server_domain,
+            }
+            servers.append(server)
+            with open('servers.json', 'w') as file:
+                file.write(json.dumps(servers) + '\n')
+            context.bot.send_message(chat_id=update.effective_chat.id, text='panel added successfully')    
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='domain already exists')      
+
 
 def handle_message(update, context):
     string = update.message.text
@@ -79,7 +103,11 @@ def handle_message(update, context):
         domain = domain_match.group(1)
         
         response = f"uid: {uid}\ndomain: {domain}"
-        get_usage(update,context,uid)
+        f = open('servers.json')
+        servers = json.load(f)
+        for i in range(len(servers)):
+            if servers[i]['domain'] == domain:
+                get_usage(update,context,uid,servers[i]['ip'])
     else:
         response = "UID or domain not found in the string."
     
@@ -92,6 +120,7 @@ def main():
 
     # Register the hello() function as a handler for the "hello" command
     dispatcher.add_handler(CommandHandler("hello", hello))
+    dispatcher.add_handler(CommandHandler("add_panel", add_panel_command))
     handler = MessageHandler(Filters.text & ~Filters.command, handle_message)
     dispatcher.add_handler(handler)
 

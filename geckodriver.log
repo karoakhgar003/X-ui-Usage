@@ -2943,3 +2943,31 @@ DevTools listening on ws://127.0.0.1:5699/devtools/browser/e92fe550-9401-48e4-af
 console.warn: LoginRecipes: "Falling back to a synchronous message for: http://80.240.16.219:2549."
 1690584922066	Marionette	INFO	Stopped listening on port 5708
 Dynamically enable window occlusion 1
+1690585964639	geckodriver	INFO	Listening on 127.0.0.1:6422
+1690585967673	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "6423" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\karoa\\AppData\\Local\\Temp\\rust_mozprofilecpew9b"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1690585967986	Marionette	INFO	Marionette enabled
+Dynamically enable window occlusion 0
+1690585967989	Marionette	INFO	Listening on port 6430
+Read port: 6430
+WebDriver BiDi listening on ws://127.0.0.1:6423
+1690585968089	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+DevTools listening on ws://127.0.0.1:6423/devtools/browser/42605165-28f9-45ad-bbf2-d1c91866d04f
+console.warn: LoginRecipes: "Falling back to a synchronous message for: http://95.179.241.91:2549."
+1690585985376	Marionette	INFO	Stopped listening on port 6430
+Dynamically enable window occlusion 1
+1690586090655	geckodriver	INFO	Listening on 127.0.0.1:6568
+1690586093681	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "6569" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\karoa\\AppData\\Local\\Temp\\rust_mozprofile5SZBcL"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1690586093976	Marionette	INFO	Marionette enabled
+Dynamically enable window occlusion 0
+1690586093980	Marionette	INFO	Listening on port 6576
+Read port: 6576
+WebDriver BiDi listening on ws://127.0.0.1:6569
+1690586094098	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+DevTools listening on ws://127.0.0.1:6569/devtools/browser/826e5485-ae0d-46cd-8d43-649fcdae0587
+console.warn: LoginRecipes: "Falling back to a synchronous message for: http://95.179.241.91:2549."
+1690586110856	Marionette	INFO	Stopped listening on port 6576
+Dynamically enable window occlusion 1
