@@ -1,26 +1,29 @@
-import datetime
+from datetime import datetime
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 import time
 import re
 import json
 
-def hello(update, context):
+def start_command(update, context):
     chat_id = update.message.chat_id
-    context.bot.send_message(chat_id=chat_id, text="Hello! Opening webpage...")
-
-    # Create a new Selenium WebDriver instance
+    context.bot.send_message(chat_id=chat_id, text="سلام به ربات حجم Fallen VPN خوش آمدید\n لطفا کانفیگ خود را بفرستید")
 
 def get_usage(update,context,id,url,port,path,username,password):
     try:
         chat_id = update.message.chat_id
         # Create a new Firefox driver instance
-        driver = webdriver.Firefox(executable_path='geckodriver.exe')
+        # driver=webdriver.Chrome()
+        options = Options()
+        options.binary_location = r'C:\Program Files\Mozilla Firefox\firefox.exe'
+
+        driver = webdriver.Firefox(executable_path='geckodriver.exe', options=options)
 
         # Open the desired webpage
         address = "http://" + url + ":" + port + path 
-        print(address)
         driver.get(f"http://{url}:{port}{path}")
+        time.sleep(3)
 
         # Find and fill in the username and password fields
         username_input = driver.find_element_by_xpath("//input[@placeholder='Username']")
@@ -42,8 +45,10 @@ def get_usage(update,context,id,url,port,path,username,password):
             
         time.sleep(2)
         # Click on the expand row button
-        expand_button = driver.find_element_by_xpath("//div[@aria-label='Expand row']")
-        expand_button.click()
+        expand_buttons = driver.find_elements_by_xpath("//div[@aria-label='Expand row']")
+
+        for button in expand_buttons:
+            button.click()
 
         # Execute JavaScript code to capture console logs
         script = """
@@ -51,35 +56,67 @@ def get_usage(update,context,id,url,port,path,username,password):
         console.log = function(message) {{
             logs.push(message);
         }};
-        a = document.querySelectorAll("tbody")[1].children;
-        uid = '{}';
-        for (let i = 0; i < a.length; i++) {{
-            if (a[i].children[5].innerText == uid) {{
-                console.log("Usage: " + a[i].children[3].innerText);
-                console.log("Date: " + a[i].children[4].innerText);
-            }}
-        }}
+        b = document.querySelectorAll("tbody")
+        for(let j = 1; j < b.length-1;j++){{
+            a = b[j].children
+            for (let i = 0; i < a.length; i++) {{
+                    if (a[i].children[5].innerText == uid) {{
+                        console.log("Usage: " + a[i].children[3].innerText);
+                        console.log("Date: " + a[i].children[4].innerText);
+                    }}
+            }}        
+        }}                     
         return logs;
         """
 
         uid = id
-        formatted_script = script.format(uid)
+        formatted_script = script.replace('uid', '"'+ uid + '"')
 
         # Retrieve the console log output
         result = driver.execute_script(formatted_script)
         usage_str = result[0]
         usage_list = usage_str.split("/")
+        print(usage_list)
         userusage = usage_list[0]
-        total = usage_list[1]
-        date = result[1].split("Date:")[1].split(" ")[1]
-        date_seperated = date.split("-")
-        x = datetime.datetime(int(date_seperated[0]), int(date_seperated[1]), int(date_seperated[2]))
-        context.bot.send_message(chat_id=chat_id, text=f"User usage: {userusage}\nTotal: {total}\nExpire Time: {x.strftime('%c')}")
+        if usage_list[1] != ' ':
+            total = usage_list[1].split('GB')[0]
+        else:
+            total = float('inf')    
+        if "-" in result[1]:
+            date = result[1].split("Date:")[1].split(" ")[1]
+            date_seperated = date.split("-")
+            x = datetime(int(date_seperated[0]), int(date_seperated[1]), int(date_seperated[2]))
+            today = datetime.now()
+            delta = (x - today).days
+            if 'MB' in userusage:
+                useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
+            elif 'GB' in userusage:
+                useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+            else:
+                useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000
+            context.bot.send_message(chat_id=chat_id, text=f"مصرف شما : {str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده :  {str(float(total) - useruseage2) + ' GB' } \nروز های باقیمانده: {delta} روز")
+        elif "day(s)" in result[1]:
+            if 'MB' in userusage:
+                useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
+            elif 'GB' in userusage:
+                useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+            else:
+                useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000  
+            context.bot.send_message(chat_id=chat_id, text=f"مصرف شما :{str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده : {str(float(total) - useruseage2) } GB  \nروز های باقیمانده: {result[1].split('day(s)')[0]} روز")
+        else:
+            if 'MB' in userusage:
+                useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
+            elif 'GB' in userusage:
+                useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+            else:
+                useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000
+            context.bot.send_message(chat_id=chat_id, text=f"مصرف شما :{str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده : {str(float(total) - useruseage2) } GB  \nروز های باقیمانده: {'inf'} روز")
+
         # Close the browser
         driver.quit()
     except:
-        get_usage(update,context,id,url)
-        driver.quit()
+        driver.close()
+        get_usage(update,context,id,url,port,path,username,password)
 
 def show_panels_command(update,context):
     f = open('servers.json')
@@ -132,7 +169,6 @@ def remove_panel_command(update,context):
             file.write(json.dumps(servers)) 
         context.bot.send_message(chat_id=update.effective_chat.id, text="Server Deleted")     
 
-
 def handle_message(update, context):
     string = update.message.text
     
@@ -147,21 +183,20 @@ def handle_message(update, context):
         f = open('servers.json')
         servers = json.load(f)
         for i in range(len(servers)):
-            if servers[i]['domain'] == domain:
+            if servers[i]['domain'] == domain.lower():
                     context.bot.send_message(chat_id=update.effective_chat.id, text="Wait 30 Seconds...")
+                    context.bot.send_message(chat_id=update.effective_chat.id, text=uid)
+
                     get_usage(update,context,uid,servers[i]['ip'],servers[i]['port'],servers[i]['path'],servers[i]['username'],servers[i]['password'])
     else:
         response = "UID or domain not found in the string."
     
-    
-
-
 def main():
-    updater = Updater(token="YOUR BOT TOKEN", use_context=True)
+    updater = Updater(token="6111829689:AAH2l-yWCGEl0M5U0M_HhdWmq30tAsR2ERw", use_context=True)
     dispatcher = updater.dispatcher
 
     # Register the hello() function as a handler for the "hello" command
-    dispatcher.add_handler(CommandHandler("hello", hello))
+    dispatcher.add_handler(CommandHandler("start", start_command))
     dispatcher.add_handler(CommandHandler("add_panel", add_panel_command))
     dispatcher.add_handler(CommandHandler("show_panels", show_panels_command))
     dispatcher.add_handler(CommandHandler("remove_panel", remove_panel_command))
