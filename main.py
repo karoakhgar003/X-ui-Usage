@@ -6,6 +6,16 @@ import time
 import re
 import json
 
+
+def is_admin(username):
+    username = '@' + username
+    f = open('admins.json')
+    admins = json.load(f)
+    if username in admins:
+        return True
+    else:
+        return False
+    
 def start_command(update, context):
     chat_id = update.message.chat_id
     context.bot.send_message(chat_id=chat_id, text="سلام به ربات حجم Fallen VPN خوش آمدید\n لطفا کانفیگ خود را بفرستید")
@@ -57,7 +67,7 @@ def get_usage(update,context,id,url,port,path,username,password):
             logs.push(message);
         }};
         b = document.querySelectorAll("tbody")
-        for(let j = 1; j < b.length-1;j++){{
+        for(let j = 1; j < b.length;j++){{
             a = b[j].children
             for (let i = 0; i < a.length; i++) {{
                     if (a[i].children[5].innerText == uid) {{
@@ -74,43 +84,46 @@ def get_usage(update,context,id,url,port,path,username,password):
 
         # Retrieve the console log output
         result = driver.execute_script(formatted_script)
-        usage_str = result[0]
-        usage_list = usage_str.split("/")
-        print(usage_list)
-        userusage = usage_list[0]
-        if usage_list[1] != ' ':
-            total = usage_list[1].split('GB')[0]
+        if len(result) == 0:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="کانفیگ مورد نظر یافت نشد!. لطفا با پشتیبانی تماس بگیرید")
         else:
-            total = float('inf')    
-        if "-" in result[1]:
-            date = result[1].split("Date:")[1].split(" ")[1]
-            date_seperated = date.split("-")
-            x = datetime(int(date_seperated[0]), int(date_seperated[1]), int(date_seperated[2]))
-            today = datetime.now()
-            delta = (x - today).days
-            if 'MB' in userusage:
-                useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
-            elif 'GB' in userusage:
-                useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+            print("karo")
+            usage_str = result[0]
+            usage_list = usage_str.split("/")
+            userusage = usage_list[0]
+            if usage_list[1] != ' ':
+                total = usage_list[1].split('GB')[0]
             else:
-                useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000
-            context.bot.send_message(chat_id=chat_id, text=f"مصرف شما : {str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده :  {str(float(total) - useruseage2) + ' GB' } \nروز های باقیمانده: {delta} روز")
-        elif "day(s)" in result[1]:
-            if 'MB' in userusage:
-                useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
-            elif 'GB' in userusage:
-                useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+                total = float('inf')    
+            if "-" in result[1]:
+                date = result[1].split("Date:")[1].split(" ")[1]
+                date_seperated = date.split("-")
+                x = datetime(int(date_seperated[0]), int(date_seperated[1]), int(date_seperated[2]))
+                today = datetime.now()
+                delta = (x - today).days
+                if 'MB' in userusage:
+                    useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
+                elif 'GB' in userusage:
+                    useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+                else:
+                    useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000
+                context.bot.send_message(chat_id=chat_id, text=f"مصرف شما : \n{ str(total)+' GB / ' + userusage.split('Usage: ')[1] }\nحجم باقیمانده : \n{str(float(total) - useruseage2) + ' GB' } \nروز های باقیمانده:\n {delta} روز")
+            elif "day(s)" in result[1]:
+                if 'MB' in userusage:
+                    useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
+                elif 'GB' in userusage:
+                    useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+                else:
+                    useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000  
+                context.bot.send_message(chat_id=chat_id, text=f"مصرف شما :\n{str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده :\n {str(float(total) - useruseage2) } GB  \nروز های باقیمانده: \n{result[1].split('day(s)')[0]} روز")
             else:
-                useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000  
-            context.bot.send_message(chat_id=chat_id, text=f"مصرف شما :{str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده : {str(float(total) - useruseage2) } GB  \nروز های باقیمانده: {result[1].split('day(s)')[0]} روز")
-        else:
-            if 'MB' in userusage:
-                useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
-            elif 'GB' in userusage:
-                useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
-            else:
-                useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000
-            context.bot.send_message(chat_id=chat_id, text=f"مصرف شما :{str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده : {str(float(total) - useruseage2) } GB  \nروز های باقیمانده: {'inf'} روز")
+                if 'MB' in userusage:
+                    useruseage2 = float(userusage.split('MB')[0].split('Usage: ')[1])/1000
+                elif 'GB' in userusage:
+                    useruseage2 = float(userusage.split('GB')[0].split('Usage: ')[1])
+                else:
+                    useruseage2 = float(userusage.split('B')[0].split('Usage: ')[1])/1000000
+                context.bot.send_message(chat_id=chat_id, text=f"مصرف شما :\n{str(total) + ' GB'} / {userusage.split('Usage: ')[1]}\nحجم باقیمانده : \n{str(float(total) - useruseage2) } GB  \nروز های باقیمانده: \n{'inf'} روز")
 
         # Close the browser
         driver.quit()
@@ -119,55 +132,58 @@ def get_usage(update,context,id,url,port,path,username,password):
         get_usage(update,context,id,url,port,path,username,password)
 
 def show_panels_command(update,context):
-    f = open('servers.json')
-    servers = json.load(f)
-    for i in range(len(servers)):
-        context.bot.send_message(chat_id=update.effective_chat.id, text=f"Domain: {servers[i]['domain']}\nIp address: {servers[i]['ip']}\nPort: {servers[i]['port']}\nPath: {servers[i]['path']}\nUsername: {servers[i]['username']}\nPassword: {servers[i]['password']}")
+    if is_admin(update.message.chat.username):
+        f = open('servers.json')
+        servers = json.load(f)
+        for i in range(len(servers)):
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f"Domain: {servers[i]['domain']}\nIp address: {servers[i]['ip']}\nPort: {servers[i]['port']}\nPath: {servers[i]['path']}\nUsername: {servers[i]['username']}\nPassword: {servers[i]['password']}")
 
 def add_panel_command(update,context):
-    args = context.args
-    if args:
-        server_ip = args[0]
-        server_domain = args[1]
-        server_port = args[2]
-        server_path = args[3]
-        server_username = args[4]
-        server_password = args[5]
-        f = open('servers.json')
-        servers = json.load(f)
-        domains_list = []
-        for i in range(len(servers)):
-            domains_list.append(servers[i]['domain'])
+    if is_admin(update.message.chat.username):
+        args = context.args
+        if args:
+            server_ip = args[0]
+            server_domain = args[1]
+            server_port = args[2]
+            server_path = args[3]
+            server_username = args[4]
+            server_password = args[5]
+            f = open('servers.json')
+            servers = json.load(f)
+            domains_list = []
+            for i in range(len(servers)):
+                domains_list.append(servers[i]['domain'])
 
-        if server_domain not in domains_list:
-            server = {
-                'ip' : server_ip,
-                'domain' : server_domain,
-                'port' : server_port,
-                'path' : server_path,
-                'username' : server_username,
-                'password' : server_password
-            }
-            servers.append(server)
-            with open('servers.json', 'w') as file:
-                file.write(json.dumps(servers) + '\n')
-            context.bot.send_message(chat_id=update.effective_chat.id, text='panel added successfully')    
-        else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='domain already exists')      
+            if server_domain not in domains_list:
+                server = {
+                    'ip' : server_ip,
+                    'domain' : server_domain,
+                    'port' : server_port,
+                    'path' : server_path,
+                    'username' : server_username,
+                    'password' : server_password
+                }
+                servers.append(server)
+                with open('servers.json', 'w') as file:
+                    file.write(json.dumps(servers) + '\n')
+                context.bot.send_message(chat_id=update.effective_chat.id, text='panel added successfully')    
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='domain already exists')      
 
 def remove_panel_command(update,context):
-    args = context.args
-    if args:
-        server_ip = args[0]
-        f = open('servers.json')
-        servers = json.load(f)
-        for i in range(len(servers)):
-            if server_ip == servers[i]['ip']:
-                servers.pop(i)
-            break
-        with open('servers.json', 'w') as file:
-            file.write(json.dumps(servers)) 
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Server Deleted")     
+    if is_admin(update.message.chat.username):
+        args = context.args
+        if args:
+            server_ip = args[0]
+            f = open('servers.json')
+            servers = json.load(f)
+            for i in range(len(servers)):
+                if server_ip == servers[i]['ip']:
+                    servers.pop(i)
+                break
+            with open('servers.json', 'w') as file:
+                file.write(json.dumps(servers)) 
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Server Deleted")     
 
 def handle_message(update, context):
     string = update.message.text
@@ -186,7 +202,6 @@ def handle_message(update, context):
             if servers[i]['domain'] == domain.lower():
                     context.bot.send_message(chat_id=update.effective_chat.id, text="Wait 30 Seconds...")
                     context.bot.send_message(chat_id=update.effective_chat.id, text=uid)
-
                     get_usage(update,context,uid,servers[i]['ip'],servers[i]['port'],servers[i]['path'],servers[i]['username'],servers[i]['password'])
     else:
         response = "UID or domain not found in the string."
@@ -200,7 +215,7 @@ def main():
     dispatcher.add_handler(CommandHandler("add_panel", add_panel_command))
     dispatcher.add_handler(CommandHandler("show_panels", show_panels_command))
     dispatcher.add_handler(CommandHandler("remove_panel", remove_panel_command))
-    handler = MessageHandler(Filters.text & ~Filters.command, handle_message)
+    handler = MessageHandler(Filters.text & ~Filters.command, handle_message, run_async=True)
     dispatcher.add_handler(handler)
 
 
