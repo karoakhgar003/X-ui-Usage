@@ -180,10 +180,9 @@ def remove_panel_command(update,context):
             for i in range(len(servers)):
                 if server_ip == servers[i]['ip']:
                     servers.pop(i)
-                break
-            with open('servers.json', 'w') as file:
-                file.write(json.dumps(servers)) 
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Server Deleted")     
+                    with open('servers.json', 'w') as file:
+                        file.write(json.dumps(servers)) 
+                    context.bot.send_message(chat_id=update.effective_chat.id, text="Server Deleted")     
 
 def handle_message(update, context):
     string = update.message.text
