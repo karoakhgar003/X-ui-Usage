@@ -204,9 +204,111 @@ def handle_message(update, context):
                     get_usage(update,context,uid,servers[i]['ip'],servers[i]['port'],servers[i]['path'],servers[i]['username'],servers[i]['password'])
     else:
         response = "UID or domain not found in the string."
+
+def extend_config(update,context,id,url,port,path,username,password,traffic,date):
+    options = Options()
+    options.binary_location = r'C:\Program Files\Mozilla Firefox\firefox.exe'
+
+    driver = webdriver.Firefox(executable_path='geckodriver.exe', options=options)
+
+    # Open the desired webpage
+    address = "http://" + url + ":" + port + path 
+    driver.get(f"http://{url}:{port}{path}")
+
+    # Find and fill in the username and password fields
+    username_input = driver.find_element_by_xpath("//input[@placeholder='Username']")
+    username_input.send_keys(username)
+    password_input = driver.find_element_by_xpath("//input[@placeholder='Password']")
+    password_input.send_keys(password)
+
+    time.sleep(1)
+
+    # Click on the sign-in button
+    sign_in_button = driver.find_element_by_xpath("//button[@class='ant-btn ant-btn-primary']")
+    sign_in_button.click()
     
+
+    time.sleep(2)
+    # Navigate to the desired page
+    driver.get(f"http://{url}:{port}{path}panel/inbounds")
+
+        
+    time.sleep(2)
+    # Click on the expand row button
+    expand_buttons = driver.find_elements_by_xpath("//div[@aria-label='Expand row']")
+
+    for button in expand_buttons:
+        button.click()
+
+    script = """
+    let logs = [];
+        console.log = function(message) {
+            logs.push(message);
+        };
+    b = document.querySelectorAll("tbody")
+    for(let j = 1; j < b.length;j++){
+        a = b[j].children
+        for (let i = 0; i < a.length; i++) {
+                if (a[i].children[5].innerText == uid ) {
+                    a[i].children[0].children[1].click()
+                }
+        }     
+    }
+    c = document.querySelectorAll(".ant-form-item")
+    setTimeout(() => {
+        traffic = c[6].children[1].children[0].children[0].children[0].children[1].children[0]
+        reset_button = c[6].children[1].children[0].children[0].children[4]
+        traffic.value = budapest
+        reset_button.click()
+    }, 500);
+    setTimeout(() => {
+        confirm_button = document.querySelectorAll(".ant-btn-primary")[3]
+        confirm_button.click()
+    }, 500);
+    setTimeout(() => {
+        switch1 = document.querySelectorAll(".ant-switch")
+        switch1 = switch1[switch1.length - 1]
+        switch1.click()
+    },500);
+
+    setTimeout(() => {
+        expire_input = a[8].children[1].children[0].children[0].children[0].children[1].children[0]
+        expire_input.value = rwanda
+        confirm_button = document.querySelectorAll(".ant-btn-primary")[2]
+        confirm_button.click()
+    },500);
+    return logs;    
+    """
+    uid = id
+    print(uid)
+    formatted_script = script.replace('uid', '"'+ uid + '"')
+    formatted_script = formatted_script.replace('budapest', traffic)
+    formatted_script = formatted_script.replace('rwanda', date)
+    print(formatted_script)
+    driver.execute_script(formatted_script)
+    
+
+
+def extention_command(update,context):
+    args = context.args
+    if args:
+        config = args[0]
+        traffic = args[1]
+        time = args[2]
+        string = config
+        uid_match = re.search(r'//([^@]+)@', string)
+        domain_match = re.search(r'@(.+):', string)
+        if uid_match and domain_match:
+            uid = uid_match.group(1)
+            domain = domain_match.group(1)
+            f = open('servers.json')
+            servers = json.load(f)
+            for i in range(len(servers)):
+                if servers[i]['domain'] == domain.lower():
+                    extend_config(update,context,uid,servers[i]['ip'],servers[i]['port'],servers[i]['path'],servers[i]['username'],servers[i]['password'],traffic,time)
+
 def main():
-    updater = Updater(token="6111829689:AAH2l-yWCGEl0M5U0M_HhdWmq30tAsR2ERw", use_context=True)
+    updater = Updater(token="6658677040:AAHG3sU6ICkzzp1sCh7qg2KKfiI66LMjp7M", use_context=True)
     dispatcher = updater.dispatcher
 
     # Register the hello() function as a handler for the "hello" command
@@ -214,6 +316,7 @@ def main():
     dispatcher.add_handler(CommandHandler("add_panel", add_panel_command))
     dispatcher.add_handler(CommandHandler("show_panels", show_panels_command))
     dispatcher.add_handler(CommandHandler("remove_panel", remove_panel_command))
+    dispatcher.add_handler(CommandHandler("extend", extention_command))
     handler = MessageHandler(Filters.text & ~Filters.command, handle_message, run_async=True)
     dispatcher.add_handler(handler)
 
